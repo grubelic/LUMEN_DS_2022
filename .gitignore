@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Model parameters
+model1/model1_parameters
+model1/model1_parameters_2
