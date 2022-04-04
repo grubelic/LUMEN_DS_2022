@@ -1,2 +1,25 @@
 10.ožujka 2022
- bla bla bla
+- istražiti imamo li pravo na 300 dolara budžeta za google servise vezano uz grafičke kartice -> zaključak je da svi imamo actually pravo na sve 
+- dokumentacija na engleskom, Smetko kaže da mu je to draže
+- pričamo o bodovanju: zaključak je da dokumentacija nosi puno i da možemo napraviti aplikaciju ako ćemo stić da dobimo bodova za jednostavnost
+- želimo li da input budu 4 slike ili 1 slika? Voditeljima je svejedno, no najlijepše bi bilo da broj inputa bude proizvoljan(1-4)
+- PYROSM: https://pyrosm.readthedocs.io/en/latest/
+- njemu je svejedno jel 8 km ili 25 km 
+
+Što dalje?
+- Ella: izraditi statističku analizu: za svaki podatak odrediti koji mu je najbliži veći graf(iznad 50000 stanovnika), možda i po županijama 
+- provjeriti podatke kao u smislu jesu točni, odnosno, uzeti par primjera i otiću ručno na google,  možda nije bitno modelu, no može se pokazati značajnim u analizi 
+- Ana će snimiti radionicu, Damjan će možda ić... 
+- Luka misli da za prvu treba dobiti bilo kakav model, bolji od random ... za početak recimo da uzmemo bilo kakav stariji model za klasifikaciju slike, no mijenjao bi zadnji sloj jer predikcija nije klasa!  - to nam je GOAL, on će se pozabaviti time 
+- Ana će rezervirati učionicu za dva tjedna 
+
+http://localhost:8888/notebooks/LUMEN_DS_2022/Data/data/d1339730-7ec2-483b-8aa5-1c921ac5a8f0/0.png
+http://localhost:8888/Users/eleonoradetic/LUMEN_DS_2022/Data/data/857fbfe5-fdaf-484d-a719-a38b1d6017b4/0.png
+
+
+
+24. ožujka 2022. 
+- grubelic povezat ce rezultate i vizualizaciju (sučelje)
+- ella početi dokumentaciju - overleaf , istražiti template, proc Lukin kod, educirat se o konvolucijskim
+- luka trenira svoj modell
+- ana ce pokusati razviti neki svoj modell
