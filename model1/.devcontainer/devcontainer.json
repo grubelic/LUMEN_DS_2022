@@ -14,8 +14,11 @@
 			"NODE_VERSION": "none",
 		},
 	},
+	"runArgs": ["--ipc=host"],
+	"containerEnv": {"DISPLAY": "${localEnv:DISPLAY}"},
 	"mounts": [
-		"source=/home/luka/Documents/WORKSPACE/Lumen Data Science 2022/Dataset,target=/workspaces/Dataset,type=bind,consistency=cached"
+		"source=/home/luka/Documents/WORKSPACE/Lumen Data Science 2022/Dataset,target=/workspaces/Dataset,type=bind,consistency=cached",
+		"source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
 	],
 
 	// Set *default* container specific settings.json values on container create.

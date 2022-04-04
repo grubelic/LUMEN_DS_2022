@@ -1,0 +1,11 @@
+MSE na training setu od 100 slika (namjerno overfittamo):
+
+0 epoha: 2.5368143414800692
+10 epoha: 3.245018080278803
+20 epoha: 1.6845968220166083
+50 epoha: 0.09067082388756081
+70 epoha: 0.0012211527024514946
+100 epoha: 0.001333868086941113
+
+na tom training setu je MSE od outputa do konstantne predikcije mean-a:
+2.3595614609303555

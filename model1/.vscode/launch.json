@@ -5,10 +5,52 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "main.py",
+            "name": "Training with main.py",
             "type": "python",
             "request": "launch",
             "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--action=train",
+                "--output_dir=model-1_debug-output-1",
+                "--train_csv=2022-mar-31_data-debug_train.csv",
+                "--val_csv=2022-mar-31_data-debug_val.csv"
+            ]
+        },
+        {
+            "name": "Evaluation with main.py on train data",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--action=inference",
+                "--output_dir=model-1_debug-inference",
+                "--val_csv=2022-mar-31_data-debug_train.csv",
+                "--parameters_path=/workspaces/LUMEN_DS_2022/model1/model-1_debug-output-1/parameters"
+            ]
+        },
+        {
+            "name": "Evaluation with main.py on val data",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--action=inference",
+                "--output_dir=model-1_debug-inference",
+                "--val_csv=2022-mar-31_data-debug_val.csv",
+                "--parameters_path=/workspaces/LUMEN_DS_2022/model1/model-1_debug-output-1/parameters"
+            ]
+        },
+        {
+            "name": "dataset_test.py",
+            "type": "python",
+            "request": "launch",
+            "program": "dataset_test.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

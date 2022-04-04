@@ -18,5 +18,9 @@ RUN pip3 install pillow matplotlib
 RUN pip3 install sklearn
 RUN pip3 install tqdm
 RUN pip3 install ipython
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y
+RUN apt-get install -y python3-tk
+RUN pip3 install vincenty 
 
 # todo: pip je ovdje povezan samo s python3 (python3.6), a nije s python3.8
