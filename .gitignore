@@ -131,3 +131,13 @@ dmypy.json
 # Model parameters
 model1/model1_parameters
 model1/model1_parameters_2
+model1/model-1_debug-inference
+model1/model-1_inference_2022-apr-03
+model1/model-1_output-1
+model1/model-1_debug-output-1
+model1/model-1_output
+model1/model-1_train-output_2022-apr-03
+
+model2/model-2_debug-output-1
+model2/model-2_inference_2022-apr-09
+model2/model-2_training_2022-apr-09
