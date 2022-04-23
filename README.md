@@ -14,14 +14,33 @@ Install `architecture` module in development mode:
 Trainer refers to a class which has `.train()` method implemented which dictates the training process.
 `TrainerDefault` is the default training process.
 
-For creating new Trainer class follow these steps:
-1) Create a new directory inside src/architecture/train directory. This directory will be the parrent dir for similar Trainer classes (for example those that differ only by hyperparameters).
-2) Create new .py file inside the directory from step 1.
-3) \* Inside the created file from step 2., create a new class with name signature `Trainer[details]`, for example `Trainer_Classification_DatesetNESW_v1`.
-4) Let the created class inherit from default trainer: `Trainer_Classification_DatesetNESW_v1(architecture.train.TrainerDefault)`
-5) Update all the hyperparameters and modify the training process.
-6) \* Declare the newly created class by adding the following line inside `architecture.train.__init__.py`: `from ..... import Trainer_Classification_DatesetNESW_v1`. This step is very important in order that the `main.py` will be able to find the correct trainer class.
-7) \* Choose a new trainer by specifying `--trainer_name Trainer_Classification_DatesetNESW_v1` when invoking `main.py` script.
+For creating new Trainer class follow these steps.
+Let's suppose that we want to create a training process for a neural network
+we have just implemented inside `model_resnet34_fc11.py` file. We are not sure
+what hyperparameters to use, so we will create two training processes that 
+differ only in hyperparameters. Each training process gets it's own `.py` file, 
+and those training processes that differ only in hyperparameters should be 
+inside the same parent directory.
+
+1) Create parent directory `src/architecture/train/trainers_resnet34_fc11/` and
+inside this directory create files `trainer_resnet34_fc11_v1.py` and
+`trainer_resnet34_fc11_v2.py`.
+
+2) \* Inside each of these files create create a new class with name signature 
+`Trainer[details]`, in our case `Trainer_ResNet34_FC11_v1` and `Trainer_ResNet34_FC11_v2` respectively.
+
+3) Let the created classes inherit from default trainer: 
+   
+   `class Trainer_ResNet34_FC11_v1(architecture.train.TrainerDefault)`
+
+4) Update all the hyperparameters and modify the training process.
+5) \* Declare the newly created class by adding the following line inside `architecture.train.__init__.py`: 
+   
+   `from .trainers_resnet34_fc11.trainer_resnet34_fc11_v1 import Trainer_ResNet34_FC11_v1`. 
+   
+   This step is very important in order that `main.py` would be able to find the correct trainer class.
+
+6)  \* Choose a new trainer by specifying `--trainer_name Trainer_ResNet34_FC11_v1` when invoking `main.py` script.
 
 Steps marked with * probably cannot be skipped.
 
