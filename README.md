@@ -44,4 +44,7 @@ inside this directory create files `trainer_resnet34_fc11_v1.py` and
 
 Steps marked with * probably cannot be skipped.
 
+# Useful information
 
+To run a process on a remote machine with `ssh`:
+`ssh name@host "python3 /path/to/script.py --param1 val1 > /path/to/stdout 2>&1 &"`

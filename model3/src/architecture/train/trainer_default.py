@@ -14,6 +14,9 @@ import os.path as osp
 from PIL import Image
 
 class TrainerDefault:
+    # If in debug mode, print some more stuff
+    MODE = 'd' # either 'p' (production) or 'd' (debug)
+
     # Filesystem parameters 
     output_dir = None
     train_csv = None
@@ -23,6 +26,7 @@ class TrainerDefault:
     # Training parameters
     learning_rate = 0.0005
     epoch_num = 25
+    save_checkpoint_every_n_epochs = 5
     batch_size = 100
     batches_per_step = 1
 
@@ -74,6 +78,7 @@ class TrainerDefault:
         It requires that all the hyperparameters are set up.
         """
         self.device = torch.device(self.device)
+        self.best_validation_loss = torch.inf
         self.criterion = self.criterion(**self.criterion_kwds)
         self.optimizer = self.optimizer(
             self.model.parameters(),
@@ -159,10 +164,13 @@ class TrainerDefault:
         
         self.model.to(self.device)
 
-        output_path_parameters = osp.join(self.output_dir, 'parameters')
-        output_path_losses_train = osp.join(self.output_dir, 'losses_train.csv')
-        output_path_losses_val = osp.join(self.output_dir, 'losses_val.csv')
-        output_path_losses_img = osp.join(self.output_dir, 'losses_img.png')
+        self.output_path_parameters = osp.join(self.output_dir, 'parameters')
+        self.output_path_losses_train = osp.join(self.output_dir, 
+                                                 'losses_train.csv')
+        self.output_path_losses_val = osp.join(self.output_dir, 
+                                               'losses_val.csv')
+        self.output_path_losses_img = osp.join(self.output_dir, 
+                                               'losses_img.png')
 
         print(self.model)
 
@@ -177,15 +185,29 @@ class TrainerDefault:
             print(f'-Validation. Epoch {epoch+1}.')
             self.validation_epoch()
 
-            self.save_model_parameters(
-                f'{output_path_parameters}_epoch_{epoch+1}.prms')
-            print(f'-Checkpoint saved to '
-                f'{output_path_parameters}_epoch_{epoch+1}.prms')
-            self.save_losses(output_path_losses_img, output_path_losses_train,
-                output_path_losses_val)
+            self.handle_saving(epoch)
         
         print(f'Training finished. All outputs saved to {self.output_dir}.')
     
+    def handle_saving(self, epoch):
+        if (epoch+1) % self.save_checkpoint_every_n_epochs == 0:
+            self.save_model_parameters(
+                f'{self.output_path_parameters}_epoch_{epoch+1}.prms')
+            print(f'-Checkpoint saved to '
+                f'{self.output_path_parameters}_epoch_{epoch+1}.prms')
+        if len(self.losses_val)>=1 \
+            and self.losses_val[-1] < self.best_validation_loss:
+            self.best_validation_loss = self.losses_val[-1]
+            self.save_model_parameters(
+                f'{self.output_path_parameters}_best.prms')
+            print(f'-Checkpoint saved to '
+                f'{self.output_path_parameters}_best.prms')
+
+        self.save_losses(
+            self.output_path_losses_img, 
+            self.output_path_losses_train,
+            self.output_path_losses_val)
+
     def training_epoch(self):
         self.optimizer.zero_grad()
         self.model.train()
@@ -193,8 +215,6 @@ class TrainerDefault:
         loss_running = torch.tensor(0., device=self.device)
 
         for batch_ind, batch in enumerate(self.dataloader_train):
-            print(f'--Batch {batch_ind+1}.')
-
             input = {
                 'image_N': batch['image_N'].to(self.device),
                 'image_E': batch['image_E'].to(self.device),
@@ -211,8 +231,9 @@ class TrainerDefault:
             if (batch_ind+1)%self.batches_per_step == 0:
                 loss_running /= (self.batch_size*self.batches_per_step)
                 self.losses_train.append(float(loss_running))
-                print(f'--Train loss: {loss_running}')
-                loss_running = torch.tensor(0.)
+                if self.MODE == 'd':
+                    print(f'--Train loss: {loss_running}')
+                loss_running = torch.tensor(0., device=self.device)
 
                 self.optimizer.step()
                 self.optimizer.zero_grad()
@@ -224,8 +245,6 @@ class TrainerDefault:
         loss_running = torch.tensor(0., device=self.device)
         
         for batch_ind, batch in enumerate(self.dataloader_val):
-            print(f'--Batch {batch_ind+1}.')
-            
             input = {
                 'image_N': batch['image_N'].to(self.device),
                 'image_E': batch['image_E'].to(self.device),
@@ -240,7 +259,8 @@ class TrainerDefault:
             ).clone().detach()
         loss_running /= len(self.dataset_val)   
         self.losses_val.append(float(loss_running))
-        print(f'--Validation loss: {loss_running}.')
+        if self.MODE == 'd':
+            print(f'--Validation loss: {loss_running}.')
     
     def save_model_parameters(self, filename):
         torch.save(self.model.state_dict(), filename)
