@@ -27,7 +27,7 @@ def get_pictures(data, result_dir, data_pic_dir):
         data_pic_dir: local directory where the photos are saved
     """
     
-    data["residuals"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    data["distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
     countries = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
     
     
@@ -81,42 +81,43 @@ def get_pictures(data, result_dir, data_pic_dir):
         
         fig = plt.gcf()
         fig.set_size_inches(18.5, 10.5)
-        plt.savefig(str(round(data.iloc[i,5],2)) + '.png', dpi = 100)
+        
+        plt.savefig(f'{data.iloc[i,5]:05.1f}_{data.iloc[i,0]}.png', dpi = 100)
         plt.clf()
 
 
 
-def residuals_analysis(data, result_dir):
+def distance_analysis(data, result_dir):
     """
-    Calculating and analysing residuals.
+    Calculating and analysing distance.
     Params:    
         data: pd.DataFrame with columns 'uuid', 'gt_latitude', 'gt_longitude', 
             'mo_latitude', 'mo_longitude'
         result_dir: path to the directory for saving the results, example: './Report'
     """
-    residuals = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    distance = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
     
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     
     os.chdir(result_dir)     
-    residuals.describe().to_frame().to_csv('The Descriptive statistics of the Residual.csv', index = True, header = None, sep = '\t')
+    distance.describe().to_frame().to_csv('The Descriptive statistics of the Residual.csv', index = True, header = None, sep = '\t')
     
     ## Histogram
     sns.set_theme()
-    fig1 = residuals.plot.hist( alpha = 0.7, figsize = (9, 7), title = 'The Histogram of the Residual', density = True)
+    fig1 = distance.plot.hist( alpha = 0.7, figsize = (9, 7), title = 'The Histogram of the Residual', density = True)
     fig1.set(xlabel='Distance', ylabel='Frequency')
     plt.savefig("The Histogram of the Residual.png") 
     
     ## QQ-plot
-    sm.qqplot(residuals,  fit=True, line="45")
+    sm.qqplot(distance,  fit=True, line="45")
     plt.savefig("The QQ-plot of the Residual.png")
     
     ## Accuracy
     km = np.linspace(start = 10, stop = 150, num = 15)
     tmp = []
     for i in km:
-        tmp.append("Number of samples distant less than " + str(int(i)) + " km = " + str(residuals[residuals < i].count()))
+        tmp.append("Number of samples distant less than " + str(int(i)) + " km = " + str(distance[distance < i].count()))
         
     pd.DataFrame(tmp).to_csv('Accuracy.csv', header=None, index=False)
  
