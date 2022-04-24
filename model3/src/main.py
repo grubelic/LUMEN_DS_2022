@@ -37,6 +37,9 @@ parser.add_argument('--parameters_path', required=False,
     help='Path to model parameters.')
 parser.add_argument('--dataset_root', required=False, 
     help='Root directory of the dataset.')
+parser.add_argument('--device', required=False, default='cpu',
+    help='Device for running torch. Either cpu or cuda:n where n is the gpu\'s '
+         'id.')
 
 def main(args):
     # Setup backend in order to work inside Docker without having available display.
@@ -54,6 +57,7 @@ def main(args):
         trainer.train_csv = args.train_csv
         trainer.val_csv = args.val_csv
         trainer.dataset_root = args.dataset_root
+        trainer.device = args.device
         trainer.train()
 
     else:

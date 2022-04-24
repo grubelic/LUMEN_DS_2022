@@ -65,11 +65,15 @@ class TrainerDefault:
     losses_train = []
     losses_val = []
 
+    # Other
+    device = 'cpu'
+
     def initialize(self):
         """
         This function is automatically called at the beginning of training.
         It requires that all the hyperparameters are set up.
         """
+        self.device = torch.device(self.device)
         self.criterion = self.criterion(**self.criterion_kwds)
         self.optimizer = self.optimizer(
             self.model.parameters(),
@@ -153,6 +157,8 @@ class TrainerDefault:
         
         self.initialize()
         
+        self.model.to(self.device)
+
         output_path_parameters = osp.join(self.output_dir, 'parameters')
         output_path_losses_train = osp.join(self.output_dir, 'losses_train.csv')
         output_path_losses_val = osp.join(self.output_dir, 'losses_val.csv')
@@ -184,19 +190,19 @@ class TrainerDefault:
         self.optimizer.zero_grad()
         self.model.train()
 
-        loss_running = torch.tensor(0.)
+        loss_running = torch.tensor(0., device=self.device)
 
         for batch_ind, batch in enumerate(self.dataloader_train):
             print(f'--Batch {batch_ind+1}.')
 
             input = {
-                'image_N': batch['image_N'],
-                'image_E': batch['image_E'],
-                'image_S': batch['image_S'],
-                'image_W': batch['image_W']
+                'image_N': batch['image_N'].to(self.device),
+                'image_E': batch['image_E'].to(self.device),
+                'image_S': batch['image_S'].to(self.device),
+                'image_W': batch['image_W'].to(self.device)
             }
             
-            output_gt = batch['output']
+            output_gt = batch['output'].to(self.device)
             output_train = self.model(input)
             loss_batch = self.criterion(output_train, output_gt) 
             loss_batch.backward()
@@ -215,21 +221,23 @@ class TrainerDefault:
 
     def validation_epoch(self):
         self.model.eval()
-        loss_running = torch.tensor(0.)
+        loss_running = torch.tensor(0., device=self.device)
         
         for batch_ind, batch in enumerate(self.dataloader_val):
             print(f'--Batch {batch_ind+1}.')
             
             input = {
-                'image_N': batch['image_N'],
-                'image_E': batch['image_E'],
-                'image_S': batch['image_S'],
-                'image_W': batch['image_W']
+                'image_N': batch['image_N'].to(self.device),
+                'image_E': batch['image_E'].to(self.device),
+                'image_S': batch['image_S'].to(self.device),
+                'image_W': batch['image_W'].to(self.device)
             }
 
-            output_gt = batch['output']
+            output_gt = batch['output'].to(self.device)
             output_val = self.model(input)
-            loss_running += self.criterion(output_val, output_gt)
+            loss_running += self.criterion(
+                output_val, output_gt
+            ).clone().detach()
         loss_running /= len(self.dataset_val)   
         self.losses_val.append(float(loss_running))
         print(f'--Validation loss: {loss_running}.')

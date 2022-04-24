@@ -142,3 +142,7 @@ model2/model-2_debug-output-1
 model2/model-2_inference_2022-apr-09
 model2/model-2_training_2022-apr-09
 model3/outputs
+
+# VSCode
+*.vscode
+*.devcontainer

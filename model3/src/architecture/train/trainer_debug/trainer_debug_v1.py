@@ -12,6 +12,8 @@ class Trainer_Debug_V1(TrainerDefault):
     batch_size = 100
     batches_per_step = 1
 
+    num_workers = 2
+
     # Training moderators
     optimizer = SGD
     optimizer_kwds = {
