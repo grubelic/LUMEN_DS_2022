@@ -13,6 +13,7 @@ import scipy.stats as stats
 import statsmodels.api as sm
 import pylab as py
 from vincenty import vincenty
+import matplotlib.colors as mcolors
 
 from tqdm import tqdm
 
@@ -95,31 +96,40 @@ def distance_analysis(data, result_dir):
             'mo_latitude', 'mo_longitude'
         result_dir: path to the directory for saving the results, example: './Report'
     """
-    distance = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    
+    data["distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
     
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     
     os.chdir(result_dir)     
-    distance.describe().to_frame().to_csv('The Descriptive statistics of the Residual.csv', index = True, header = None, sep = '\t')
+    data.iloc[:,5].describe().to_frame().drop(["std"]).to_csv('Distance Descriptive statistics.csv', index = True, header = None, sep = '\t')
     
-    ## Histogram
+    ## Histogram 
     sns.set_theme()
-    fig1 = distance.plot.hist( alpha = 0.7, figsize = (9, 7), title = 'The Histogram of the Residual', density = True)
+    fig1 = data.iloc[:,5].plot.hist( alpha = 0.7, figsize = (9, 7), title = 'Histogram', density = True)
     fig1.set(xlabel='Distance', ylabel='Frequency')
-    plt.savefig("The Histogram of the Residual.png") 
+    plt.savefig("Distance Histogram.png") 
     
-    ## QQ-plot
-    sm.qqplot(distance,  fit=True, line="45")
-    plt.savefig("The QQ-plot of the Residual.png")
+    ## QQ-plots
+    latitude_residuals = abs(data.iloc[:,1] - data.iloc[:,3])
+    longitude_residuals =  abs(data.iloc[:,2] - data.iloc[:,4])
     
-    ## Accuracy
-    km = np.linspace(start = 10, stop = 150, num = 15)
-    tmp = []
-    for i in km:
-        tmp.append("Number of samples distant less than " + str(int(i)) + " km = " + str(distance[distance < i].count()))
-        
-    pd.DataFrame(tmp).to_csv('Accuracy.csv', header=None, index=False)
+    qq_latitude = sm.qqplot(latitude_residuals,  fit=True, line="45")
+    qq_longitude = sm.qqplot(longitude_residuals,  fit=True, line="45")
+    
+    qq_latitude.savefig("Q-Q plot Lat Residual.png")
+    qq_longitude.savefig("Q-Q plot Long Residual.png")
+    
+    #Density Indicator -> #ligher is better
+    binInterval = [0, 50, 100, 300, 900]
+    binLabels   = [0,1,2,3]
+    data['distance_'] = pd.cut(data['distance'], bins = binInterval, labels=binLabels)
+    
+    cmap, norm = mcolors.from_levels_and_colors([0,1,2,3], ['#74BBFB', '#1F75FE', '#00008B'])
+    plt.clf()
+    plt.scatter(data.iloc[:, 2], data.iloc[:,1], c = data.iloc[:, 6], cmap=cmap, norm=norm, s = 10)
+    plt.savefig("Distance Density.png") 
  
 
 print("Uspješno importan modul :D")   
