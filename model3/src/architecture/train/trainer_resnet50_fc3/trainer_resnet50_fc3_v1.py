@@ -10,8 +10,8 @@ class Trainer_ResNet50_FC3_v1(TrainerDefault):
     # Training parameters
     learning_rate = 0.01
     epoch_num = 100
-    batch_size = 8
-    batches_per_step = 2
+    batch_size = 4
+    batches_per_step = 4
 
     num_workers = 2
 
