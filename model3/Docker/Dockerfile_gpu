@@ -20,4 +20,8 @@ RUN apt-get update -y
 RUN apt-get install -y python3-tk
 RUN pip3 install vincenty 
 
+# Download pretrained weights inside the image and not inside each new container.
+RUN python3 -c "import torchvision; torchvision.models.resnet50(pretrained=True)"
+RUN python3 -c "import torchvision; torchvision.models.resnet18(pretrained=True)"
+
 # todo: pip je ovdje povezan samo s python3 (python3.6), a nije s python3.8

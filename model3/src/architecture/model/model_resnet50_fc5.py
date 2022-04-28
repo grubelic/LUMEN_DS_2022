@@ -17,11 +17,6 @@ class Net(nn.Module):
             nn.Linear(512, 512), nn.ReLU(),
             nn.Linear(512, 512), nn.ReLU(),
             nn.Linear(512, 512), nn.ReLU(),
-            nn.Linear(512, 512), nn.ReLU(),
-            nn.Linear(512, 512), nn.ReLU(),
-            nn.Linear(512, 512), nn.ReLU(),
-            nn.Linear(512, 512), nn.ReLU(),
-            nn.Linear(512, 512), nn.ReLU(),
             nn.Linear(512, 2)
         )
 
@@ -33,6 +28,7 @@ class Net(nn.Module):
         """
         for param in model_part.parameters():
             param.requires_grad = unfreeze
+    
 
     def get_grad_norm(self, module):
         parameters = [
@@ -43,6 +39,7 @@ class Net(nn.Module):
         device = parameters[0].grad.device
         return torch.stack([
             torch.norm(p.grad.detach()).to(device) for p in parameters])
+
 
     # Defining the forward pass    
     def forward(self, input):
