@@ -12,6 +12,7 @@ from architecture.dataset import Dataset
 from torch.utils.data import DataLoader
 import os.path as osp
 from PIL import Image
+from datetime import datetime
 
 class TrainerDefault:
     # If in debug mode, print some more stuff
@@ -71,6 +72,9 @@ class TrainerDefault:
 
     # Other
     device = ['cpu']
+
+    def log_message(self, msg):
+        print(datetime.now().strftime("[%Y/%b/%d %H:%M:%S]"), msg)
 
     def initialize(self):
         """
@@ -177,15 +181,15 @@ class TrainerDefault:
 
         print(self.model)
 
-        print('Initial validation.')
+        self.log_message('Initial validation.')
         self.validation_epoch()
 
         for epoch in range(self.epoch_num):
-            print(f'-Training. Epoch {epoch+1}. '
+            self.log_message(f'Training. Epoch {epoch+1}. '
                 f'lr={self.scheduler.get_last_lr()}')
             self.training_epoch()
             
-            print(f'-Validation. Epoch {epoch+1}.')
+            self.log_message(f'Validation. Epoch {epoch+1}.')
             self.validation_epoch()
 
             self.handle_saving(epoch)

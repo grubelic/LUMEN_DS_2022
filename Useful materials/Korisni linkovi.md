@@ -4,3 +4,6 @@ https://towardsdatascience.com/how-to-code-a-simple-neural-network-in-pytorch-fo
 
 ## Transfer learning with PyTorch
 https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
+
+## Batch normalization
+[LINK](https://d2l.ai/chapter_convolutional-modern/batch-norm.html)
