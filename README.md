@@ -48,3 +48,27 @@ Steps marked with * probably cannot be skipped.
 
 To run a process on a remote machine with `ssh`:
 `ssh name@host "python3 /path/to/script.py --param1 val1 > /path/to/stdout 2>&1 &"`
+
+
+# Debugging in VSCode
+Add this configuration to `.vscode/launch.json` for a debug training.
+
+```
+{
+   "name": "Training with train.py",
+   "type": "python",
+   "request": "launch",
+   "program": "src/train.py",
+   "console": "integratedTerminal",
+   "justMyCode": true,
+   "args": [
+         "--trainer_name=Trainer_Debug_V1",
+         "--output_dir=outputs/debug-output-3",
+         "--train_csv=2022-mar-31_data-debug_train.csv",
+         "--val_csv=2022-mar-31_data-debug_val.csv",
+         "--dataset_root=/workspaces/Dataset",
+         "--device=cpu",
+         "--run_mode=d"
+   ]
+}
+```

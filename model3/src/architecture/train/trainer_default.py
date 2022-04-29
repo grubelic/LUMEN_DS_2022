@@ -182,7 +182,7 @@ class TrainerDefault:
         print(self.model)
 
         self.log_message('Initial validation.')
-        self.validation_epoch()
+        self.validation_epoch(epoch=0)
 
         for epoch in range(self.epoch_num):
             self.log_message(f'Training. Epoch {epoch+1}. '
@@ -190,7 +190,7 @@ class TrainerDefault:
             self.training_epoch()
             
             self.log_message(f'Validation. Epoch {epoch+1}.')
-            self.validation_epoch()
+            self.validation_epoch(epoch=epoch+1)
 
             self.handle_saving(epoch)
         
@@ -248,10 +248,14 @@ class TrainerDefault:
 
         self.scheduler.step()
 
-    def validation_epoch(self):
+    def validation_epoch(self, epoch):
         self.model.eval()
         loss_running = torch.tensor(0., device=self.device[0])
         
+        validation_df = pd.DataFrame(
+            columns=['uuid', 'gt_latitude', 'gt_longitude', 
+            'mo_latitude', 'mo_longitude'])
+
         for batch_ind, batch in enumerate(self.dataloader_val):
             input = {
                 'image_N': batch['image_N'].to(self.device[0]),
@@ -265,6 +269,24 @@ class TrainerDefault:
             loss_running += self.criterion(
                 output_val, output_gt
             ).clone().detach()
+            
+            output_gt_denorm = self.dataset_val.denormalize_output(
+                output_gt.clone().detach())
+            output_mo_denorm = self.dataset_val.denormalize_output(
+                output_val.clone().detach())
+
+            validation_df = pd.concat([
+                validation_df, 
+                pd.DataFrame({
+                    'uuid': batch['uuid'],
+                    'gt_latitude': output_gt_denorm[:, 0],
+                    'gt_longitude': output_gt_denorm[:, 1],
+                    'mo_latitude': output_mo_denorm[:, 0],
+                    'mo_longitude': output_mo_denorm[:, 1]
+                })], ignore_index=True)
+            
+        self.validation_plot(validation_df, epoch)
+            
         loss_running /= len(self.dataset_val)   
         self.losses_val.append(float(loss_running))
 
@@ -287,5 +309,22 @@ class TrainerDefault:
         pd.DataFrame({
             'loss_val': self.losses_val
             }).to_csv(output_path_losses_val)
+
+    def validation_plot(self, validation_df, epoch):
+        """
+        TODO: Description
+        Params:
+            validation_df (pandas.DataFrame): DataFrame with columns 'uuid', 
+                'gt_latitude', 'gt_longitude', 'mo_latitude', 'mo_longitude'. 
+                Each row represents one sample in validation dataset.
+            epoch (int): Current epoch number.
+        """
+            
+        """
+            !!! Important:
+            Path of output directory is in:
+                self.output_dir
+        """
+        pass
         
 
