@@ -3,6 +3,7 @@ from pickletools import optimize
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os 
 
 import torch
 from torch.nn import MSELoss, DataParallel
@@ -13,6 +14,11 @@ from torch.utils.data import DataLoader
 import os.path as osp
 from PIL import Image
 from datetime import datetime
+
+from architecture.evaluation.evaluation import distance_descriptive
+from architecture.evaluation.evaluation import distance_histogram
+from architecture.evaluation.evaluation import distance_density
+
 
 class TrainerDefault:
     # If in debug mode, print some more stuff
@@ -183,8 +189,11 @@ class TrainerDefault:
 
         self.log_message('Initial validation.')
         self.validation_epoch(epoch=0)
+        
+        self.make_dir_train(output_dir = self.output_dir)
 
         for epoch in range(self.epoch_num):
+            
             self.log_message(f'Training. Epoch {epoch+1}. '
                 f'lr={self.scheduler.get_last_lr()}')
             self.training_epoch()
@@ -285,6 +294,12 @@ class TrainerDefault:
                     'mo_longitude': output_mo_denorm[:, 1]
                 })], ignore_index=True)
             
+            distance_analysis(validation_df, self.output_dir)
+         
+        self.epoch_analysis(self, self.output_dir, epoch, validation_df)   
+            
+        
+            
         self.validation_plot(validation_df, epoch)
             
         loss_running /= len(self.dataset_val)   
@@ -326,5 +341,48 @@ class TrainerDefault:
                 self.output_dir
         """
         pass
+    
+    def make_dir_train(self, output_dir):
+        
+        desc_dir =  output_dir + '/Descriptive Statistics'
+        hist_dir = output_dir + '/Histogram'
+        dist_dir = output_dir + '/Distance Density'
+        
+        if not os.path.exists(desc_dir):
+            os.makedirs(desc_dir)  
+            
+        if not os.path.exists(hist_dir):
+            os.makedirs(hist_dir)  
+            
+        if not os.path.exists(dist_dir):
+            os.makedirs(dist_dir)
+            
+            
+    def epoch_analysis(self, output_dir, epoch, data):
+        
+        epoch = str(epoch)
+        
+        desc_dir =  output_dir + '/Descriptive Statistics' + '/Epoh_' + epoch
+        hist_dir = output_dir + '/Histogram' + '/Epoh_' + epoch
+        dens_dir = output_dir + '/Distance Density' + '/Epoh_' + epoch
+        
+        
+        if not os.path.exists(hist_dir):
+            os.makedirs(hist_dir)  
+            
+        distance_histogram(data, hist_dir)
+            
+        if not os.path.exists(dens_dir):
+            os.makedirs(dens_dir) 
+            
+        distance_density(data, dens_dir)
+        
+        if not os.path.exists(desc_dir):
+            os.makedirs(desc_dir)
+            
+        distance_descriptive(data, desc_dir) 
+            
+    
+        
         
 
