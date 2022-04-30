@@ -294,8 +294,6 @@ class TrainerDefault:
                     'mo_longitude': output_mo_denorm[:, 1]
                 })], ignore_index=True)
             
-            distance_analysis(validation_df, self.output_dir)
-         
         self.epoch_analysis(self, self.output_dir, epoch, validation_df)   
             
         
