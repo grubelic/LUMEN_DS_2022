@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
+from plotnine import ggplot, geom_point, aes, xlab, ylab, ggtitle, ggsave
+
 import os 
 import geopandas as gpd
 
@@ -97,12 +99,14 @@ def distance_analysis(data, result_dir):
         result_dir: path to the directory for saving the results, example: './Report'
     """
     
-    data["distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    data["Distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
     
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     
-    os.chdir(result_dir)     
+    os.chdir(result_dir)
+    
+    ## Descriptive statistics     
     data.iloc[:,5].describe().to_frame().drop(["std"]).to_csv('Distance Descriptive statistics.csv', index = True, header = None, sep = '\t')
     
     ## Histogram 
@@ -110,26 +114,13 @@ def distance_analysis(data, result_dir):
     fig1 = data.iloc[:,5].plot.hist( alpha = 0.7, figsize = (9, 7), title = 'Histogram', density = True)
     fig1.set(xlabel='Distance', ylabel='Frequency')
     plt.savefig("Distance Histogram.png") 
+
+    #Density Indicator 
+    gt_croatia = ggplot(data, aes('gt_longitude', 'gt_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Ground Truth") 
+    ggsave(gt_croatia, filename = "Density Distance GT.pdf",width = 25, height = 20, units = "cm", path = result_dir)
     
-    ## QQ-plots
-    latitude_residuals = abs(data.iloc[:,1] - data.iloc[:,3])
-    longitude_residuals =  abs(data.iloc[:,2] - data.iloc[:,4])
-    
-    qq_latitude = sm.qqplot(latitude_residuals,  fit=True, line="45")
-    qq_longitude = sm.qqplot(longitude_residuals,  fit=True, line="45")
-    
-    qq_latitude.savefig("Q-Q plot Lat Residual.png")
-    qq_longitude.savefig("Q-Q plot Long Residual.png")
-    
-    #Density Indicator -> #ligher is better
-    binInterval = [0, 50, 100, 300, 900]
-    binLabels   = [0,1,2,3]
-    data['distance_'] = pd.cut(data['distance'], bins = binInterval, labels=binLabels)
-    
-    cmap, norm = mcolors.from_levels_and_colors([0,1,2,3], ['#74BBFB', '#1F75FE', '#00008B'])
-    plt.clf()
-    plt.scatter(data.iloc[:, 2], data.iloc[:,1], c = data.iloc[:, 6], cmap=cmap, norm=norm, s = 10)
-    plt.savefig("Distance Density.png") 
+    mo_croatia = ggplot(data, aes('mo_longitude', 'mo_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Model Output") 
+    ggsave(mo_croatia, filename = "Density Distance MO.pdf",width = 25, height = 20, units = "cm", path = result_dir)
  
 
 print("Uspješno importan modul :D")   
