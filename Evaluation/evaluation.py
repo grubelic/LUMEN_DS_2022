@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
-from plotnine import ggplot, geom_point, aes, xlab, ylab, ggtitle, ggsave
+from plotnine import ggplot, geom_point, aes, xlab, ylab, ggtitle, ggsave, geom_histogram, geom_density, geom_vline
 
 import os 
 import geopandas as gpd
@@ -83,6 +83,7 @@ def get_pictures(data, result_dir, data_pic_dir):
         os.chdir(pic_dir)
         
         fig = plt.gcf()
+        fig.patch.set_facecolor('white')
         fig.set_size_inches(18.5, 10.5)
         
         plt.savefig(f'{data.iloc[i,5]:05.1f}_{data.iloc[i,0]}.png', dpi = 100)
@@ -110,17 +111,15 @@ def distance_analysis(data, result_dir):
     data.iloc[:,5].describe().to_frame().drop(["std"]).to_csv('Distance Descriptive statistics.csv', index = True, header = None, sep = '\t')
     
     ## Histogram 
-    sns.set_theme()
-    fig1 = data.iloc[:,5].plot.hist( alpha = 0.7, figsize = (9, 7), title = 'Histogram', density = True)
-    fig1.set(xlabel='Distance', ylabel='Frequency')
-    plt.savefig("Distance Histogram.png") 
+    hist = ggplot(data, aes(x="Distance")) + geom_histogram(binwidth=20,  fill='gray', alpha = 0.6)+ geom_vline(aes(xintercept=np.mean(data["Distance"])), color="red", linetype="dashed", size=1) + xlab("Distance") + ylab("Frequency")
+    ggsave(hist, filename = "Histogram.png",width = 25, height = 20, units = "cm", path = result_dir)
 
     #Density Indicator 
     gt_croatia = ggplot(data, aes('gt_longitude', 'gt_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Ground Truth") 
-    ggsave(gt_croatia, filename = "Density Distance GT.pdf",width = 25, height = 20, units = "cm", path = result_dir)
+    ggsave(gt_croatia, filename = "Density Distance GT.png",width = 25, height = 20, units = "cm", path = result_dir)
     
     mo_croatia = ggplot(data, aes('mo_longitude', 'mo_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Model Output") 
-    ggsave(mo_croatia, filename = "Density Distance MO.pdf",width = 25, height = 20, units = "cm", path = result_dir)
+    ggsave(mo_croatia, filename = "Density Distance MO.png",width = 25, height = 20, units = "cm", path = result_dir)
  
 
 print("Uspješno importan modul :D")   
