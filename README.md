@@ -3,11 +3,33 @@ Marry Dijan team's repository for Lumen Data science 2022.
 
 # model3
 
-Implementation of `architecture` module and `main.py` script.
+Implementation of `architecture` module, `train.py` and `inference.py` scripts.
+
+## Setup
+
+The easiest and most straightforward way to set things up is using Docker.
+
+To install Docker, follow these instructions: https://docs.docker.com/get-docker/
+
+Now build a Docker image from Dockerfile:
+
+`docker build -t marry_dijan -f model3/Docker/Dockerfile_cpu model3/Docker/`
+
+Now run new container and mount your workspace directory to container's workspace
+directory:
+
+`docker run -it --rm -v [FULL PATH TO YOUR WORKSPACE]:/workspaces marry_dijan /bin/bash`
+
+Now a new bash instance should be running inside the created container.
 
 Install `architecture` module in development mode:
-`cd model3/src`
-`pip install -e .`
+```
+cd LUMEN_DS_2022/model3/src
+pip install -e .
+```
+
+Now you are ready to run either `train.py` or `inference.py` from `model3/src`.
+Usage instructions are explained below.
 
 
 ## Creating a new Trainer
