@@ -24,6 +24,8 @@ class Dataset(torch.utils.data.Dataset):
 
         self.data = pd.read_csv(osp.join(dataset_root, csv_file))
         self.image_directions = image_directions
+        self.contains_gt = 'latitude' in self.data and \
+            'longitude' in self.data
 
         if transform is not None:
             self.transform = transform 
@@ -35,9 +37,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         uuid = self.data.iloc[index]['uuid']
-        latitude = self.data.iloc[index]['latitude']
-        longitude = self.data.iloc[index]['longitude']
-        
+
         sample = {
             'uuid': uuid,
             'image_N': self.transform(self.load_image(uuid, 'N')) \
@@ -48,9 +48,14 @@ class Dataset(torch.utils.data.Dataset):
                 if 'S' in self.image_directions else torch.zeros(1),
             'image_W': self.transform(self.load_image(uuid, 'W')) \
                 if 'W' in self.image_directions else torch.zeros(1),
-            'output': self.normalize_output(
-                torch.tensor([latitude, longitude], dtype=torch.float32))
         }
+        
+        if self.contains_gt:
+            latitude = self.data.iloc[index]['latitude']
+            longitude = self.data.iloc[index]['longitude']
+            sample['output'] = self.normalize_output(
+                    torch.tensor([latitude, longitude], dtype=torch.float32)
+                )
 
         return sample
 

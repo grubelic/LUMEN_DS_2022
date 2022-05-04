@@ -4,20 +4,21 @@ import matplotlib
 import os
 import os.path as osp
 
-from pandas import options
 
 import architecture.train as train
-#from architecture.inference.inference import evaluate_model
 
 """
 Usage example (training):
     ~ Create new directory for output storage, for example 'model-1_output'.
     ~ Run in command line:
         python3 train.py \
-            --action=train \
+            --trainer_name=Trainer_Debug_V1 \
             --output_dir=model-1_output \
-            --train_csv=2022-mar-31_data_train.csv \
-            --val_csv=2022-mar-31_data_val.csv
+            --train_csv=2022-mar-31_data-debug_train.csv \
+            --val_csv=2022-mar-31_data-debug_val.csv \
+            --dataset_root=/workspaces/Dataset \
+            --device=cpu \
+            --run_mode=d
 """
 
 
