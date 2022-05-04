@@ -1,3 +1,4 @@
+from tabnanny import verbose
 import pandas as pd
 import numpy as np
 import cv2 as cv2
@@ -90,61 +91,71 @@ def get_pictures(data, root_dir, data_pic_dir):
 
 
 
-def distance_descriptive(data, dir):
+def distance_descriptive(data, output_path):
     """
     Params:    
         data: pd.DataFrame with columns 'uuid', 'gt_latitude', 'gt_longitude', 
             'mo_latitude', 'mo_longitude'
-        dir: path to the directory for saving the results, example: './Report'
+        output_path: path to non existing file for saving the results
     """
     
-    data["Distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    data["Distance"] = data.apply(
+        lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), 
+                            (x["mo_latitude"], x["mo_longitude"])), axis=1)
     
-    os.chdir(dir)
+    data.iloc[:,5].describe().to_frame().drop(["std"]).to_csv(
+        output_path, index=True, header=None, sep='\t')
     
-    data.iloc[:,5].describe().to_frame().drop(["std"]).to_csv('Distance Descriptive statistics.csv', index = True, header = None, sep = '\t')
-    
-
-
-
-
-def distance_histogram(data, dir):
+def distance_histogram(data, output_path):
     """
     Params:    
         data: pd.DataFrame with columns 'uuid', 'gt_latitude', 'gt_longitude', 
             'mo_latitude', 'mo_longitude'
-        dir: path to the directory for saving the results, example: './Report'
+        output_path: path to non existing file for saving the results
     """
     
-    data["Distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
-    
-    os.chdir(dir)  
+    data["Distance"] = data.apply(
+        lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), 
+                            (x["mo_latitude"], x["mo_longitude"])), axis=1)
      
-    hist = ggplot(data, aes(x="Distance")) + geom_histogram(binwidth=20,  fill='gray', alpha = 0.6)+ geom_vline(aes(xintercept=np.mean(data["Distance"])), color="red", linetype="dashed", size=1) + xlab("Distance") + ylab("Frequency")
-    ggsave(hist, filename = "Histogram.png",width = 25, height = 20, units = "cm", path = dir)
+    hist = ggplot(data, aes(x="Distance")) \
+        + geom_histogram(binwidth=20,  fill='gray', alpha=0.6) \
+        + geom_vline(aes(xintercept=np.mean(data["Distance"])), 
+            color="red", linetype="dashed", size=1) \
+        + xlab("Distance") + ylab("Frequency")
+    ggsave(hist, filename=output_path, width=25, height=20, units="cm", 
+        verbose=False) 
 
 
-
-def distance_density(data, dir):
+def distance_density(data, output_path):
     """
     Params:    
         data: pd.DataFrame with columns 'uuid', 'gt_latitude', 'gt_longitude', 
             'mo_latitude', 'mo_longitude'
-        dir: path to the directory for saving the results, example: './Report'
+        output_path: path to non existing file for saving the results
     """
     
-    data["Distance"] = data.apply(lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), (x["mo_latitude"], x["mo_longitude"])), axis=1)
+    data["Distance"] = data.apply(
+        lambda x: vincenty((x["gt_latitude"], x["gt_longitude"]), 
+                            (x["mo_latitude"], x["mo_longitude"])), axis=1)
     
-    os.chdir(dir) 
+    gt_croatia = \
+        ggplot(data, aes('gt_longitude', 'gt_latitude', color='Distance')) \
+        + geom_point() \
+        + xlab("Longitude") \
+        + ylab("Latitude") \
+        + ggtitle("Ground Truth") 
+    ggsave(gt_croatia, filename=f'{output_path}_GT', width=25, height=20, 
+        units="cm", verbose=False)
     
-    if not os.path.exists(dir):
-        os.makedirs(dir)  
-    
-    gt_croatia = ggplot(data, aes('gt_longitude', 'gt_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Ground Truth") 
-    ggsave(gt_croatia, filename = "Density Distance GT.png",width = 25, height = 20, units = "cm", path = dir)
-    
-    mo_croatia = ggplot(data, aes('mo_longitude', 'mo_latitude', color='Distance')) + geom_point() + xlab("Longitude") + ylab("Latitude") + ggtitle("Model Output") 
-    ggsave(mo_croatia, filename = "Density Distance MO.png",width = 25, height = 20, units = "cm", path = dir)
+    mo_croatia = \
+        ggplot(data, aes('mo_longitude', 'mo_latitude', color='Distance')) \
+        + geom_point() \
+        + xlab("Longitude") \
+        + ylab("Latitude") \
+        + ggtitle("Model Output") 
+    ggsave(mo_croatia, filename=f'{output_path}_MO', width=25, height=20, 
+        units="cm", verbose=False)
  
   
     

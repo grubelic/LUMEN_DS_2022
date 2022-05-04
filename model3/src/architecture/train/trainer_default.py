@@ -87,6 +87,7 @@ class TrainerDefault:
         This function is automatically called at the beginning of training.
         It requires that all the hyperparameters are set up.
         """
+        self.make_dir_train(output_dir=self.output_dir)
         self.device = [torch.device(dev) for dev in self.device]
         if len(self.device) > 1:
             raise NotImplementedError("Multi GPU not yet supported")
@@ -189,11 +190,8 @@ class TrainerDefault:
 
         self.log_message('Initial validation.')
         self.validation_epoch(epoch=0)
-        
-        self.make_dir_train(output_dir = self.output_dir)
 
         for epoch in range(self.epoch_num):
-            
             self.log_message(f'Training. Epoch {epoch+1}. '
                 f'lr={self.scheduler.get_last_lr()}')
             self.training_epoch()
@@ -293,12 +291,9 @@ class TrainerDefault:
                     'mo_latitude': output_mo_denorm[:, 0],
                     'mo_longitude': output_mo_denorm[:, 1]
                 })], ignore_index=True)
-            
-        self.epoch_analysis(self, self.output_dir, epoch, validation_df)   
-            
-        
-            
-        self.validation_plot(validation_df, epoch)
+
+        self.log_message('Epoch analysis.')
+        self.epoch_analysis(epoch, validation_df)
             
         loss_running /= len(self.dataset_val)   
         self.losses_val.append(float(loss_running))
@@ -322,29 +317,11 @@ class TrainerDefault:
         pd.DataFrame({
             'loss_val': self.losses_val
             }).to_csv(output_path_losses_val)
-
-    def validation_plot(self, validation_df, epoch):
-        """
-        TODO: Description
-        Params:
-            validation_df (pandas.DataFrame): DataFrame with columns 'uuid', 
-                'gt_latitude', 'gt_longitude', 'mo_latitude', 'mo_longitude'. 
-                Each row represents one sample in validation dataset.
-            epoch (int): Current epoch number.
-        """
-            
-        """
-            !!! Important:
-            Path of output directory is in:
-                self.output_dir
-        """
-        pass
     
     def make_dir_train(self, output_dir):
-        
-        desc_dir =  output_dir + '/Descriptive Statistics'
-        hist_dir = output_dir + '/Histogram'
-        dist_dir = output_dir + '/Distance Density'
+        desc_dir = osp.join(output_dir, 'Descriptive Statistics')
+        hist_dir = osp.join(output_dir, 'Histogram')
+        dist_dir = osp.join(output_dir, 'Distance Density')
         
         if not os.path.exists(desc_dir):
             os.makedirs(desc_dir)  
@@ -355,30 +332,23 @@ class TrainerDefault:
         if not os.path.exists(dist_dir):
             os.makedirs(dist_dir)
             
+    def epoch_analysis(self, epoch, data):
+        desc_path = osp.join(
+            self.output_dir, 
+            'Descriptive Statistics', 
+            f'Epoch_{epoch:03}')
+        hist_path = osp.join(
+            self.output_dir, 
+            'Histogram', 
+            f'Epoch_{epoch:03}')
+        dens_path = osp.join(
+            self.output_dir, 
+            'Distance Density', 
+            f'Epoch_{epoch:03}')
             
-    def epoch_analysis(self, output_dir, epoch, data):
-        
-        epoch = str(epoch)
-        
-        desc_dir =  output_dir + '/Descriptive Statistics' + '/Epoh_' + epoch
-        hist_dir = output_dir + '/Histogram' + '/Epoh_' + epoch
-        dens_dir = output_dir + '/Distance Density' + '/Epoh_' + epoch
-        
-        
-        if not os.path.exists(hist_dir):
-            os.makedirs(hist_dir)  
-            
-        distance_histogram(data, hist_dir)
-            
-        if not os.path.exists(dens_dir):
-            os.makedirs(dens_dir) 
-            
-        distance_density(data, dens_dir)
-        
-        if not os.path.exists(desc_dir):
-            os.makedirs(desc_dir)
-            
-        distance_descriptive(data, desc_dir) 
+        distance_histogram(data, hist_path)
+        distance_density(data, dens_path)
+        distance_descriptive(data, desc_path) 
             
     
         
