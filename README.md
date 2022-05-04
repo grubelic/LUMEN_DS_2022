@@ -44,6 +44,40 @@ inside this directory create files `trainer_resnet34_fc11_v1.py` and
 
 Steps marked with * probably cannot be skipped.
 
+## Running inference
+The term 'inference' means generating predictions of the trained model on some
+input images. For running inference, run `inference.py` script.
+
+In the following example we will generate predictions of one model.
+
+- Parameters is located at `/workspaces/parameters_id-25.prms`.
+
+- Dataset is located at:
+
+  ```
+  /workspaces/Dataset/
+      |- data/
+      |- 2022-mar-31_data_val.csv
+  ```
+
+- (Empty) output directory is located at `/workspaces/id_25_out`.
+
+Now run the following:
+```
+python3 src/inference.py
+   --trainer_name=Trainer_ResNet50_FC3_v1 \
+   --parameters_path=/workspaces/parameters_id-25.prms \
+   --dataset_root=/workspaces/Dataset \
+   --target_csv=2022-mar-31_data_val.csv \
+   --output_dir=/workspaces/id_25_out \
+   --device=cpu \
+   --batch_size=1 \
+   --num_workers=4
+```
+
+Result is `/workspaces/id_25_out/output.csv` where all the predictions are generated
+in columns `mo_latitude`, `mo_longitude`.
+
 # Useful information
 
 To run a process on a remote machine with `ssh`:

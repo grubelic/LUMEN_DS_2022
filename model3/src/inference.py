@@ -22,7 +22,7 @@ Usage example (inference):
             --output_dir=model-1_output \
             --device=cpu \
             --batch_size=1 \
-            --num_workers=4 \
+            --num_workers=4
 """
 
 parser = argparse.ArgumentParser()
