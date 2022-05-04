@@ -146,3 +146,6 @@ model3/outputs
 # VSCode
 *.vscode
 *.devcontainer
+
+# MacOS
+*.DS_Store
