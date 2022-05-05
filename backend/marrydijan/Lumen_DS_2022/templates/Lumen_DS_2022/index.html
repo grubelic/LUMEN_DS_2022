@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Marry Dijan</title>
+</head>
+<body>
+<form method="post" enctype="multipart/form-data" action="/upload/">{% csrf_token %}
+ <div>
+   {% if has_multiple_models %}
+   <select name="model_name">
+     {% for model_name in models %}
+     <option value="{{model_name}}">{{model_name}}</option>
+     {% endfor %}
+   </select>
+   {% endif %}
+   <label for="id_file">Choose file to upload</label>
+   <input type="file" id="id_file" name="file" accept="image/*, .zip" required/>
+   <input type="submit" value="Upload">
+ </div>
+</form>
+
+</body>
+</html>
