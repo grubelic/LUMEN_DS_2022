@@ -3,11 +3,33 @@ Marry Dijan team's repository for Lumen Data science 2022.
 
 # model3
 
-Implementation of `architecture` module and `main.py` script.
+Implementation of `architecture` module, `train.py` and `inference.py` scripts and various models.
+
+## Setup
+
+The easiest and most straightforward way to set things up is using Docker.
+
+To install Docker, follow these instructions: https://docs.docker.com/get-docker/
+
+Now build a Docker image from Dockerfile:
+
+`docker build -t marry_dijan -f LUMEN_DS_2022/model3/Docker/Dockerfile_cpu model3/Docker/`
+
+Now run new container and mount your workspace directory to container's workspace
+directory:
+
+`docker run -it --rm -v [FULL PATH TO YOUR WORKSPACE]:/workspaces marry_dijan /bin/bash`
+
+Now a new bash instance should be running inside the created container.
 
 Install `architecture` module in development mode:
-`cd model3/src`
-`pip install -e .`
+```
+cd LUMEN_DS_2022/model3/src
+pip install -e .
+```
+
+Now you are ready to run either `train.py` or `inference.py` from `model3/src`.
+Usage instructions are explained below.
 
 
 ## Creating a new Trainer
@@ -44,7 +66,65 @@ inside this directory create files `trainer_resnet34_fc11_v1.py` and
 
 Steps marked with * probably cannot be skipped.
 
+## Running inference
+The term 'inference' means generating predictions of the trained model on some
+input images. For running inference, run `inference.py` script.
+
+In the following example we will generate predictions of one model.
+
+- Parameters is located at `/workspaces/parameters_id-25.prms`.
+
+- Dataset is located at:
+
+  ```
+  /workspaces/Dataset/
+      |- data/
+      |- 2022-mar-31_data_val.csv
+  ```
+
+- (Empty) output directory is located at `/workspaces/id_25_out`.
+
+Now run the following:
+```
+python3 src/inference.py
+   --trainer_name=Trainer_ResNet50_FC3_v1 \
+   --parameters_path=/workspaces/parameters_id-25.prms \
+   --dataset_root=/workspaces/Dataset \
+   --target_csv=2022-mar-31_data_val.csv \
+   --output_dir=/workspaces/id_25_out \
+   --device=cpu \
+   --batch_size=1 \
+   --num_workers=4
+```
+
+Result is `/workspaces/id_25_out/output.csv` where all the predictions are generated
+in columns `mo_latitude`, `mo_longitude`.
+
 # Useful information
 
 To run a process on a remote machine with `ssh`:
 `ssh name@host "python3 /path/to/script.py --param1 val1 > /path/to/stdout 2>&1 &"`
+
+
+# Debugging in VSCode
+Add this configuration to `.vscode/launch.json` for a debug training.
+
+```
+{
+   "name": "Training with train.py",
+   "type": "python",
+   "request": "launch",
+   "program": "src/train.py",
+   "console": "integratedTerminal",
+   "justMyCode": true,
+   "args": [
+         "--trainer_name=Trainer_Debug_V1",
+         "--output_dir=outputs/debug-output-3",
+         "--train_csv=2022-mar-31_data-debug_train.csv",
+         "--val_csv=2022-mar-31_data-debug_val.csv",
+         "--dataset_root=/workspaces/Dataset",
+         "--device=cpu",
+         "--run_mode=d"
+   ]
+}
+```

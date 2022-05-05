@@ -3,6 +3,7 @@ from pickletools import optimize
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os 
 
 import torch
 from torch.nn import MSELoss, DataParallel
@@ -13,6 +14,11 @@ from torch.utils.data import DataLoader
 import os.path as osp
 from PIL import Image
 from datetime import datetime
+
+from architecture.evaluation.evaluation import distance_descriptive
+from architecture.evaluation.evaluation import distance_histogram
+from architecture.evaluation.evaluation import distance_density
+
 
 class TrainerDefault:
     # If in debug mode, print some more stuff
@@ -81,6 +87,7 @@ class TrainerDefault:
         This function is automatically called at the beginning of training.
         It requires that all the hyperparameters are set up.
         """
+        self.make_dir_train(output_dir=self.output_dir)
         self.device = [torch.device(dev) for dev in self.device]
         if len(self.device) > 1:
             raise NotImplementedError("Multi GPU not yet supported")
@@ -182,7 +189,7 @@ class TrainerDefault:
         print(self.model)
 
         self.log_message('Initial validation.')
-        self.validation_epoch()
+        self.validation_epoch(epoch=0)
 
         for epoch in range(self.epoch_num):
             self.log_message(f'Training. Epoch {epoch+1}. '
@@ -190,7 +197,7 @@ class TrainerDefault:
             self.training_epoch()
             
             self.log_message(f'Validation. Epoch {epoch+1}.')
-            self.validation_epoch()
+            self.validation_epoch(epoch=epoch+1)
 
             self.handle_saving(epoch)
         
@@ -248,10 +255,14 @@ class TrainerDefault:
 
         self.scheduler.step()
 
-    def validation_epoch(self):
+    def validation_epoch(self, epoch):
         self.model.eval()
         loss_running = torch.tensor(0., device=self.device[0])
         
+        validation_df = pd.DataFrame(
+            columns=['uuid', 'gt_latitude', 'gt_longitude', 
+            'mo_latitude', 'mo_longitude'])
+
         for batch_ind, batch in enumerate(self.dataloader_val):
             input = {
                 'image_N': batch['image_N'].to(self.device[0]),
@@ -265,6 +276,25 @@ class TrainerDefault:
             loss_running += self.criterion(
                 output_val, output_gt
             ).clone().detach()
+            
+            output_gt_denorm = self.dataset_val.denormalize_output(
+                output_gt.clone().detach().to('cpu'))
+            output_mo_denorm = self.dataset_val.denormalize_output(
+                output_val.clone().detach().to('cpu'))
+
+            validation_df = pd.concat([
+                validation_df, 
+                pd.DataFrame({
+                    'uuid': batch['uuid'],
+                    'gt_latitude': output_gt_denorm[:, 0],
+                    'gt_longitude': output_gt_denorm[:, 1],
+                    'mo_latitude': output_mo_denorm[:, 0],
+                    'mo_longitude': output_mo_denorm[:, 1]
+                })], ignore_index=True)
+
+        self.log_message('Epoch analysis.')
+        self.epoch_analysis(epoch, validation_df)
+            
         loss_running /= len(self.dataset_val)   
         self.losses_val.append(float(loss_running))
 
@@ -287,5 +317,40 @@ class TrainerDefault:
         pd.DataFrame({
             'loss_val': self.losses_val
             }).to_csv(output_path_losses_val)
+    
+    def make_dir_train(self, output_dir):
+        desc_dir = osp.join(output_dir, 'Descriptive Statistics')
+        hist_dir = osp.join(output_dir, 'Histogram')
+        dist_dir = osp.join(output_dir, 'Distance Density')
+        
+        if not os.path.exists(desc_dir):
+            os.makedirs(desc_dir)  
+            
+        if not os.path.exists(hist_dir):
+            os.makedirs(hist_dir)  
+            
+        if not os.path.exists(dist_dir):
+            os.makedirs(dist_dir)
+            
+    def epoch_analysis(self, epoch, data):
+        desc_path = osp.join(
+            self.output_dir, 
+            'Descriptive Statistics', 
+            f'Epoch_{epoch:03}')
+        hist_path = osp.join(
+            self.output_dir, 
+            'Histogram', 
+            f'Epoch_{epoch:03}')
+        dens_path = osp.join(
+            self.output_dir, 
+            'Distance Density', 
+            f'Epoch_{epoch:03}')
+            
+        distance_histogram(data, hist_path)
+        distance_density(data, dens_path)
+        distance_descriptive(data, desc_path) 
+            
+    
+        
         
 
