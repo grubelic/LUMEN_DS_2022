@@ -80,7 +80,7 @@ class TrainerDefault:
     device = ['cpu']
 
     def log_message(self, msg):
-        print(datetime.now().strftime("[%Y/%b/%d %H:%M:%S]"), msg)
+        print(datetime.now().strftime("[%Y/%b/%d %H:%M:%S]"), msg, flush=True)
 
     def initialize(self):
         """
