@@ -24,5 +24,6 @@ from .trainer_resnet50_fc5.trainer_resnet50_fc5_overfit_v1 import Trainer_ResNet
 from .trainer_resnet50_fc5.trainer_resnet50_fc5_v1 import Trainer_ResNet50_FC5_v1
 
 from .trainer_resnet50_fc_dbl.trainer_resnet50_fc_dbl_overfit_v1 import Trainer_ResNet50_FC_dbl_Overfit_v1
+from .trainer_resnet50_fc_dbl.trainer_resnet50_fc_dbl_v1 import Trainer_ResNet50_FC_dbl_v1
 
 from .Ellin_train import Ellin_train_v1

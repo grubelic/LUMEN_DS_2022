@@ -278,9 +278,9 @@ class TrainerDefault:
             ).clone().detach()
             
             output_gt_denorm = self.dataset_val.denormalize_output(
-                output_gt.clone().detach())
+                output_gt.clone().detach().to('cpu'))
             output_mo_denorm = self.dataset_val.denormalize_output(
-                output_val.clone().detach())
+                output_val.clone().detach().to('cpu'))
 
             validation_df = pd.concat([
                 validation_df, 
