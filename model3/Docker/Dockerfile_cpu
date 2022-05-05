@@ -18,6 +18,8 @@ RUN pip3 install pillow matplotlib
 RUN pip3 install sklearn
 RUN pip3 install tqdm
 RUN pip3 install ipython
+RUN pip3 install django
+RUN pip3 install folium
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y
 RUN apt-get install -y python3-tk
