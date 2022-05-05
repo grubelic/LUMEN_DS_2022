@@ -13,11 +13,17 @@ class Dataset(torch.utils.data.Dataset):
     lat_std = 0.8563826794590563
     lon_mean = 16.402045631961176
     lon_std = 1.2739828910340654
-    out_mean = torch.tensor([lat_mean, lon_mean], dtype=torch.float32)
-    out_std = torch.tensor([lat_std, lon_std], dtype=torch.float32)
 
-    def __init__(self, dataset_root, csv_file, transform=None, 
-        image_directions=['N', 'E', 'S', 'W']):
+    def __init__(self, dataset_root, csv_file, transform=None,
+        image_directions=['N', 'E', 'S', 'W'], device=["cpu"]):
+        self.out_mean = torch.tensor(
+            [Dataset.lat_mean, Dataset.lon_mean],
+            dtype=torch.float32, device=device[0]
+        )
+        self.out_std = torch.tensor(
+            [Dataset.lat_std, Dataset.lon_std],
+            dtype=torch.float32, device=device[0]
+        )
 
         self.dataset_root = dataset_root
         self.csv_file = csv_file
@@ -79,5 +85,5 @@ class Dataset(torch.utils.data.Dataset):
     def normalize_output(self, output):
         return (output-self.out_mean)/self.out_std
 
-    def denormalize_output(self, output):
+    def denormalize_output(self, output, device="cuda:0"):
         return output*self.out_std+self.out_mean

@@ -52,7 +52,7 @@ def is_image_folder(path):
 
 
 def create_target_csv(path):
-    uuids = list(filter(is_image_folder, os.listdir(path / "data")))
+    uuids = list(filter(lambda fn: is_image_folder(path / "data" / fn), os.listdir(path / "data")))
     with open(path / "target.csv", 'w') as out_f:
         out_f.write("uuid\n")
         out_f.write('\n'.join(uuids))
@@ -92,7 +92,7 @@ def handle_uploaded_file(req_dir, uploaded_file, trainer_name=DEFAULT_MODEL):
             zip_file.extractall(dataset_root)
     target_csv = validate_dataset(dataset_root)
     output_dir = req_dir / "output_dir"
-    parameters_path = "/mnt/1620E23720E21D8D/Dokumenti/Python/LumenDS2022/parameters_id-27.prms"
+    parameters_path = "D:\\Documents\\Python\\lumen_assets\\parameters_id-27.prms"
     main(
         [
             "--trainer_name", trainer_name,
@@ -128,9 +128,10 @@ def upload(request):
     except ValidationError as e:
         return HttpResponseBadRequest(e.message)
     finally:
-        delete_dirs(req_dir)
+        pass # delete_dirs(req_dir)
     with open(output_dir / "output.csv", 'r') as in_f:
-        response = HttpResponse(in_f, mimetype="text/csv")
-        response["Content-Disposition"] = "attachment; filename=out.csv"
-        return response
+        return HttpResponse(in_f, headers={
+            "Content-Type": "text/csv",
+            "Content-Disposition": "attachment; filename=out.csv"
+        })
     # return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
