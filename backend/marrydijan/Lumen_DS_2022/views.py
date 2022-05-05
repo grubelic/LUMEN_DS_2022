@@ -14,16 +14,23 @@ from inference import main
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 
-DEFAULT_MODEL = "Trainer_ResNet50_FC3_v2"
 
-models = {
-    "Trainer_ResNet50_FC3_v2": None
-}
+def load_inference_args(path="inference_args.txt"):
+    result = {}
+    with open(path, 'r') as in_f:
+        for line in in_f:
+            if line.startswith('#'):
+                continue
+            arg_name, arg_val = line.strip().split()
+            result[arg_name.lstrip('-')] = arg_val
+    return result
 
 
+DEFAULT_INF_ARGS = load_inference_args()
 
 
 def index(request):
+    models = {}
     context = {
         "models": models.keys(),
         "has_multiple_models": len(models) > 1
@@ -31,17 +38,18 @@ def index(request):
     return render(request, "Lumen_DS_2022/index.html", context)
 
 
-def prepare_dirs(root_folder):
-    if not os.path.isdir(root_folder):
-        os.mkdir(root_folder)
-    if not os.path.isdir(root_folder / "dataset"):
-        os.mkdir(root_folder / "dataset")
-    if not os.path.isdir(root_folder / "output_dir"):
-        os.mkdir(root_folder / "output_dir")
+def prepare_dirs(*dirs):
+    temp_dirs = []
+    for directory in dirs:
+        if not directory.is_dir():
+            directory.mkdir()
+            temp_dirs.append(directory)
+    return temp_dirs
 
 
-def delete_dirs(root_folder):
-    shutil.rmtree(root_folder)
+def delete_dirs(*dirs):  # must be topologically sorted
+    for directory in dirs[::-1]:
+        shutil.rmtree(directory)
 
 
 valid_image_names = {"0.jpg", "90.jpg", "180.jpg", "270.jpg"}
@@ -52,7 +60,8 @@ def is_image_folder(path):
 
 
 def create_target_csv(path):
-    uuids = list(filter(lambda fn: is_image_folder(path / "data" / fn), os.listdir(path / "data")))
+    uuids = list(filter(lambda fn: is_image_folder(path / "data" / fn),
+                        os.listdir(path / "data")))
     with open(path / "target.csv", 'w') as out_f:
         out_f.write("uuid\n")
         out_f.write('\n'.join(uuids))
@@ -65,12 +74,12 @@ def validate_target_csv(path):
             raise ValidationError("Some uuids don't have corresponding data folders")
 
 
-def validate_dataset(dataset_root, desired_structure="standard", target_csv=None):
-    if desired_structure == "standard":
-        if not os.path.isdir(dataset_root / "data"):
+def validate_dataset(dataset_root, target_csv=None, structure="standard"):
+    if structure == "standard":
+        if not (dataset_root / "data").is_dir():
             raise ValidationError("Missing data folder")
-        if target_csv is not None and os.path.isfile(dataset_root / target_csv):
-            validate_target_csv(target_csv)
+        if target_csv is not None and (dataset_root / target_csv).is_file():
+            validate_target_csv(dataset_root / target_csv)
         elif target_csv is not None:
             raise ValidationError(f"Desired target csv ({target_csv}) is not provided")
         else:
@@ -79,10 +88,9 @@ def validate_dataset(dataset_root, desired_structure="standard", target_csv=None
     return target_csv
 
 
-def handle_uploaded_file(req_dir, uploaded_file, trainer_name=DEFAULT_MODEL):
+def handle_uploaded_file(req_dir, uploaded_file, dataset_root):
     ext = uploaded_file.name[uploaded_file.name.rfind('.'):]
     uploaded_file_path = req_dir / ("uploaded_file" + ext)
-    dataset_root = req_dir / "dataset"
     with open(uploaded_file_path, 'wb+') as out_f:
         for chunk in uploaded_file.chunks():
             out_f.write(chunk)
@@ -90,48 +98,54 @@ def handle_uploaded_file(req_dir, uploaded_file, trainer_name=DEFAULT_MODEL):
     if ext == ".zip":
         with ZipFile(uploaded_file_path, 'r') as zip_file:
             zip_file.extractall(dataset_root)
-    target_csv = validate_dataset(dataset_root)
-    output_dir = req_dir / "output_dir"
-    parameters_path = "D:\\Documents\\Python\\lumen_assets\\parameters_id-27.prms"
-    main(
-        [
-            "--trainer_name", trainer_name,
-            "--parameters_path", parameters_path,
-            "--dataset_root", str(dataset_root),
-            "--target_csv", str(target_csv),
-            "--output_dir", str(output_dir),
-            "--device", "cpu",
-            "--batch_size", "1",
-            "--num_workers", "4"
-        ]
-    )
-    return output_dir
+    # os.remove(uploaded_file_path)
 
 
+def run_inference(inf_args):
+    inf_args["target_csv"] = \
+        validate_dataset(inf_args["dataset_root"], inf_args["target_csv"])
+    args_list = []
+    for arg_name, arg_val in inf_args.items():
+        args_list.append("--" + arg_name)
+        args_list.append(str(arg_val))
+    main(args_list)
 
 
 def upload(request):
-    if "model_name" in request.POST:
-        used_model = request.POST["model_name"]
+    # get default args (copied, to avoid modifying them)
+    inf_args = DEFAULT_INF_ARGS.copy()
+    # override the default args with sent headers
+    for arg_name in filter(request.POST.__contains__, DEFAULT_INF_ARGS):
+        inf_args[arg_name] = request.POST[arg_name]
+    # ignore input paths in headers if input file is uploaded
+    if "file" in request.FILES:
+        # making a separate directory for each connection
+        ip, port = request.environ["wsgi.input"].stream.raw._sock.getpeername()
+        req_dir = Path(ip.replace(".", "_") + "-" + str(port))
+        inf_args.update(
+            dataset_root=req_dir / "dataset",
+            output_dir=req_dir / "out",
+            target_csv=request.POST.get("target_csv")
+        )
     else:
-        used_model = DEFAULT_MODEL
-    if "file" not in request.FILES:
-        return HttpResponseBadRequest("File not uploaded")
-
-    # making a directory for each connection
-    ip, port = request.environ["wsgi.input"].stream.raw._sock.getpeername()
-    req_dir = Path(ip.replace(".", "_") + "-" + str(port))
-    prepare_dirs(req_dir)
-    output_dir = None
+        for it in ("dataset_root", "output_dir"):
+            inf_args[it] = Path(inf_args[it])
+        req_dir = inf_args["dataset_root"].parent
+    temp_dirs = prepare_dirs(
+        req_dir, inf_args["dataset_root"], inf_args["output_dir"]
+    )
     try:
-        output_dir = handle_uploaded_file(req_dir, request.FILES["file"], used_model)
+        if "file" in request.FILES:
+            handle_uploaded_file(
+                req_dir, request.FILES["file"], inf_args["dataset_root"]
+            )
+        run_inference(inf_args)
+        with open(inf_args["output_dir"] / "output.csv", 'r') as in_f:
+            return HttpResponse(in_f, headers={
+                "Content-Type": "text/csv",
+                "Content-Disposition": "attachment; filename=out.csv"
+            })
     except ValidationError as e:
         return HttpResponseBadRequest(e.message)
     finally:
-        pass # delete_dirs(req_dir)
-    with open(output_dir / "output.csv", 'r') as in_f:
-        return HttpResponse(in_f, headers={
-            "Content-Type": "text/csv",
-            "Content-Disposition": "attachment; filename=out.csv"
-        })
-    # return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+        delete_dirs(*temp_dirs)
