@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import LinearLR
 import os
 import os.path as osp
 
-class Trainer_ResNet50_FC_dbl_v1(TrainerDefault):
+class Trainer_ResNet50_FC_dbl_v2(TrainerDefault):
     model = Net()
     # Training parameters
     learning_rate = 0.01
@@ -55,7 +55,6 @@ class Trainer_ResNet50_FC_dbl_v1(TrainerDefault):
 
     def initialize(self):
         super().initialize()
-        self.model.freeze_part(self.model.feature_extractor)
         self.scheduler = self.warmup_scheduler(
             self.optimizer, 
             total_iters=self.warmup_epochs * \
@@ -104,9 +103,6 @@ class Trainer_ResNet50_FC_dbl_v1(TrainerDefault):
     def training_epoch(self, epoch):
         self.optimizer.zero_grad()
         self.model.train()
-        self.model.feature_extractor.eval()
-        if self.RUN_MODE == 'd':
-            print('Feature extractor set to eval mode.')
 
         loss_running = torch.tensor(0., device=self.device[0])
 
