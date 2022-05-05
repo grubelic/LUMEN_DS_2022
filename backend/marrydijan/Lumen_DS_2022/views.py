@@ -8,16 +8,16 @@ import os.path
 import os
 from zipfile import ZipFile
 sys.path.append(os.path.join("..", "..", "model3", "src"))
-# from inference import main
+from inference import main
 
 # Create your views here.
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 
-DEFAULT_MODEL = "resnet50"
+DEFAULT_MODEL = "Trainer_ResNet50_FC3_v2"
 
 models = {
-    "resnet50": None
+    "Trainer_ResNet50_FC3_v2": None
 }
 
 
@@ -90,7 +90,7 @@ def handle_uploaded_file(req_dir, uploaded_file, trainer_name=DEFAULT_MODEL):
     if ext == ".zip":
         with ZipFile(uploaded_file_path, 'r') as zip_file:
             zip_file.extractall(dataset_root)
-    target_csv = dataset_root / validate_dataset(dataset_root)
+    target_csv = validate_dataset(dataset_root)
     output_dir = req_dir / "output_dir"
     parameters_path = "/mnt/1620E23720E21D8D/Dokumenti/Python/LumenDS2022/parameters_id-27.prms"
     main(
@@ -112,9 +112,9 @@ def handle_uploaded_file(req_dir, uploaded_file, trainer_name=DEFAULT_MODEL):
 
 def upload(request):
     if "model_name" in request.POST:
-        used_model = models[request.POST["model_name"]]
+        used_model = request.POST["model_name"]
     else:
-        used_model = models[DEFAULT_MODEL]
+        used_model = DEFAULT_MODEL
     if "file" not in request.FILES:
         return HttpResponseBadRequest("File not uploaded")
 
