@@ -85,7 +85,7 @@ def main(args):
 def inference(dataset, model, parameters_path, batch_size, num_workers, device):
     if len(device) > 1:
         raise NotImplementedError("Multi GPU not yet supported")
-    model.load_state_dict(torch.load(parameters_path))
+    model.load_state_dict(torch.load(parameters_path, map_location=device[0]))
     model.to(device[0])
 
     dataloader = DataLoader(dataset, batch_size=batch_size, drop_last=False,
