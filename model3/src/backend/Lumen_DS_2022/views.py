@@ -34,7 +34,7 @@ def index(request):
     context = {
         "models": models.keys(),
         "has_multiple_models": len(models) > 1
-    }
+    } | DEFAULT_INF_ARGS
     return render(request, "Lumen_DS_2022/index.html", context)
 
 

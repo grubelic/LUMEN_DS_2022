@@ -31,3 +31,5 @@ RUN python3 -c "import torchvision; torchvision.models.resnet18(pretrained=True)
 
 RUN pip install opencv-python seaborn geopandas statsmodels plotnine
 RUN apt-get install -y ffmpeg libsm6 libxext6
+RUN pip3 install notebook
+RUN pip3 install ipywidgets
