@@ -1,13 +1,13 @@
 import shutil
 import sys
 from pathlib import Path
-
+from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
 import os.path
 import os
 from zipfile import ZipFile
-sys.path.append(os.path.join(".."))
+sys.path.append(os.path.join("..", "model3", "src"))
 from inference import main
 
 # Create your views here.
@@ -30,11 +30,9 @@ DEFAULT_INF_ARGS = load_inference_args()
 
 
 def index(request):
-    models = {}
     context = {
-        "models": models.keys(),
-        "has_multiple_models": len(models) > 1
-    } | DEFAULT_INF_ARGS
+        "arguments": DEFAULT_INF_ARGS.keys()
+    }
     return render(request, "Lumen_DS_2022/index.html", context)
 
 
@@ -67,10 +65,11 @@ def create_target_csv(path):
         out_f.write('\n'.join(uuids))
 
 
-def validate_target_csv(path):
+def validate_target_csv(path, dataset_root):
     with open(path, 'r') as in_f:
         in_f.readline()
-        if not all(is_image_folder(path.parent / "data" / fn.split(',')[0]) for fn in in_f):
+        if not all(is_image_folder(dataset_root / "data" / fn.split(',')[0])
+                   for fn in in_f if fn.strip()):
             raise ValidationError("Some uuids don't have corresponding data folders")
 
 
@@ -79,7 +78,7 @@ def validate_dataset(dataset_root, target_csv=None, structure="standard"):
         if not (dataset_root / "data").is_dir():
             raise ValidationError("Missing data folder")
         if target_csv is not None and (dataset_root / target_csv).is_file():
-            validate_target_csv(dataset_root / target_csv)
+            validate_target_csv(dataset_root / target_csv, dataset_root)
         elif target_csv is not None:
             raise ValidationError(f"Desired target csv ({target_csv}) is not provided")
         else:
@@ -111,11 +110,12 @@ def run_inference(inf_args):
     main(args_list)
 
 
+@csrf_exempt
 def upload(request):
     # get default args (copied, to avoid modifying them)
     inf_args = DEFAULT_INF_ARGS.copy()
     # override the default args with sent headers
-    for arg_name in filter(request.POST.__contains__, DEFAULT_INF_ARGS):
+    for arg_name in filter(lambda arg: request.POST[arg], DEFAULT_INF_ARGS):
         inf_args[arg_name] = request.POST[arg_name]
     # ignore input paths in headers if input file is uploaded
     if "file" in request.FILES:

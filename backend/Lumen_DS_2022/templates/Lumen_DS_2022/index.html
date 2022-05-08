@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inference</title>
+</head>
+<body>
+<form method="post" enctype="multipart/form-data" action="/upload/">
+ <div style="justify-content=center;width=100%">
+ {% for arg in arguments %}
+     <label for="id_{{arg}}">{{arg}}</label><br/>
+     <input type="text" id="id_{{arg}}" name="{{arg}}" style="margin-bottom=10px;"/><br/>
+ {% endfor %}
+   <label for="id_file">Choose file to upload</label><br/>
+   <input type="file" id="id_file" name="file" accept="image/*, .csv, .zip"/>
+   <br/><br/><input type="submit" value="Upload">
+ </div>
+</form>
+
+</body>
+</html>

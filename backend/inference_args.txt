@@ -1,5 +1,5 @@
 --trainer_name Trainer_ResNet50_FC3_v2
---parameters_path D:\Documents\Python\lumen_assets\parameters_id-27.prms
+--parameters_path /workspaces/LUMEN_DS_2022/model3/outputs/parameters_id-27.prms
 --dataset_root D:\Documents\Python\lumen_assets\dataset
 --target_csv 2022-may-04_data_val.csv
 --output_dir D:\Documents\Python\lumen_assets\out
