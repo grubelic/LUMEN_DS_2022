@@ -1,8 +1,8 @@
---trainer_name Trainer_ResNet50_FC3_v2
+--trainer_name Trainer_ResNet50_FC3_v1
 --parameters_path /workspaces/LUMEN_DS_2022/model3/outputs/parameters_id-27.prms
---dataset_root D:\Documents\Python\lumen_assets\dataset
+--dataset_root PLEASE_UPLOAD_DATASET_OR_ADD_PATH_TO_inference_args.txt
 --target_csv 2022-may-04_data_val.csv
---output_dir D:\Documents\Python\lumen_assets\out
+--output_dir PLEASE_ADD_OUTPUT_PATH_TO_inference_args.txt
 --device cpu
 --batch_size 1
 --num_workers 4

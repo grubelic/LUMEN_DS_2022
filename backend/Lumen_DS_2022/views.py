@@ -7,7 +7,7 @@ from django.shortcuts import render
 import os.path
 import os
 from zipfile import ZipFile
-sys.path.append(os.path.join("..", "model3", "src"))
+sys.path.append(os.path.join("..", "src"))
 from inference import main
 
 # Create your views here.
