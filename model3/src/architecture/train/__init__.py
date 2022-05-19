@@ -29,4 +29,8 @@ from .trainer_resnet50_fc_dbl.trainer_resnet50_fc_dbl_v2 import Trainer_ResNet50
 
 from .trainer_resnet18_fc_dbl.trainer_resnet18_fc_dbl_v1 import Trainer_ResNet18_FC_dbl_v1
 
+from .trainer_fe_fc_dbl.trainer_fe_fc_dbl_sgd_v1 import Trainer_FE_FC_dbl_sgd_v1
+from .trainer_fe_fc_dbl.trainer_fe_fc_dbl_adam_overfit_v1 import Trainer_FE_FC_dbl_Adam_overfit_v1
+from .trainer_fe_fc_dbl.trainer_fe_fc_dbl_adam_overfit_v2 import Trainer_FE_FC_dbl_Adam_overfit_v2
+
 from .Ellin_train import Ellin_train_v1
